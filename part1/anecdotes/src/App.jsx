@@ -13,10 +13,29 @@ const App = () => {
   ]
 
   const [selected, setSelected] = useState(0)
+  const [votes, setVotes] = useState(Array(anecdotes.length).fill(0))
+  let maxIndex = votes.reduce((maxIndex, currentValue, currentIndex, array) => {
+    if (currentValue > array[maxIndex]) {
+      maxIndex = currentIndex
+    }
+    return maxIndex
+  }, 0)
 
   return (
     <div>
+      <h1>Anecdote of the day</h1>
       {anecdotes[selected]}
+      <p>has {votes[selected]} votes</p>
+      <button onClick={() => {
+        const copy = [...votes]
+        // increment the value in position 2 by one
+        copy[selected] += 1
+        setVotes(copy)
+      }}>vote</button>
+      <button onClick={() => setSelected(Math.floor(Math.random() * anecdotes.length))}>next anecdotes</button>
+      <h1>Anecdote with most votes</h1>
+      {anecdotes[maxIndex]}
+      <p>has {votes[maxIndex]} votes</p>
     </div>
   )
 }
