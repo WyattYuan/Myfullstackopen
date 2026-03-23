@@ -1,10 +1,21 @@
-import axios from 'axios'
 import { useEffect, useState } from 'react'
+import personsService from './service/persons'
 
-const PersonList = ({ persons }) => {
-  return <>
-    {persons.map((person) => <p key={person.name}>{person.name} {person.number}</p>)}
-  </>
+const PersonList = ({ persons, setPersons }) => {
+  return (
+    <>
+      {persons.map(
+        (person) =>
+          <p key={person.name}>
+            {person.name} {person.number} <button onClick={() => {
+              if (window.confirm(`Delete ${person.name} ?`)) {
+                personsService
+                  .deletePerson(persons.find(x => x.name === person.name).id)
+                  .then(() => setPersons(persons.filter(x => x.name !== person.name)))
+              }
+            }}>delete</button>
+          </p>)}
+    </>)
 }
 
 
@@ -52,7 +63,7 @@ const App = () => {
 
   useEffect(
     () => {
-      axios.get('http://localhost:3001/persons').then(response => setPersons(response.data))
+      personsService.getAll().then(persons => setPersons(persons))
     }
     , [])
 
@@ -62,15 +73,22 @@ const App = () => {
   const handleAddPerson = (event) => {
     event.preventDefault()
     const exists = persons.some(person => person.name === newName)
-    if (exists) {
-      alert(`${newName} is already added to phonebook`)
-      return
-    }
     const personObject = {
       name: newName,
       number: newNumber
     }
-    setPersons(persons.concat(personObject))
+    if (exists) {
+      if (window.confirm(`${newName} is already add to the phonebook, replace the old number with the new one?`)) {
+        const targetID = persons.find(person => person.name === newName).id
+        personsService
+          .update(targetID, personObject)
+        const updated = persons.map(p => p.id === targetID ? personObject : p)
+        setPersons(updated)
+      }
+      return
+    }
+    personsService.create(personObject).then(newPerson => setPersons(persons.concat(newPerson)))
+
     setNewName('')
     setNewNumber('')
   }
@@ -83,7 +101,7 @@ const App = () => {
       <h2>add a new</h2>
       <PersonForm newName={newName} onNameChange={setNewName} newNumber={newNumber} onNumberChange={setNewNumber} onSubmit={handleAddPerson}></PersonForm>
       <h2>Numbers</h2>
-      <PersonList persons={personsToShow}></PersonList>
+      <PersonList persons={personsToShow} setPersons={setPersons}></PersonList>
     </div>
   )
 }
