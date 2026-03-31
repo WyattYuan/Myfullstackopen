@@ -1,6 +1,9 @@
 require('dotenv').config()
-const mongoose = require('mongoose')
 
+const PORT = process.env.PORT
+const MONGODB_URI = process.env.MONGODB_URI
 
-const mongoUrl = process.env.MONGODB_URI
-mongoose.connect(mongoUrl)
+module.exports = {
+    PORT,
+    MONGODB_URI
+}
