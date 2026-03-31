@@ -8,7 +8,8 @@ const { initialBlogs, nonExistingId, retrieveBlogsAsJson } = require('./test_hel
 const { test, beforeEach, after } = require('node:test')
 const { Blog } = require('../models/blog')
 
-const assert = require('node:assert/strict')
+const assert = require('node:assert/strict');
+const { url } = require('node:inspector');
 
 beforeEach(async () => {
     await Blog.deleteMany({})
@@ -61,6 +62,31 @@ test('验证如果请求中缺少 likes 属性，它将默认为值 0', async ()
 
     const blogsAtEnd = await retrieveBlogsAsJson()
     assert.strictEqual(blogsAtEnd[blogsAtEnd.length - 1].likes, 0)
+})
+
+test('验证如果请求中缺少 title 和 url 属性，服务器将响应状态码 400 Bad Request', async () => {
+    const noTitle = {
+        author: 'Test Author',
+        url: 'http://testblog.com'
+    }
+    await api.post('/api/blogs')
+        .send(noTitle)
+        .expect(400)
+
+    const noUrl = {
+        title: 'Test Blog',
+        author: 'Test Author'
+    }
+    await api.post('/api/blogs')
+        .send(noUrl)
+        .expect(400)
+
+    const noTitleAndUrl = {
+        author: 'Test Author'
+    }
+    await api.post('/api/blogs')
+        .send(noTitleAndUrl)
+        .expect(400)
 })
 
 after(async () => {
